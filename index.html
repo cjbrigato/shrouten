@@ -1,0 +1,29 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Deso.le</title>
+</head>
+<body>
+    <script type="text/javascript">
+        function get_action(form) {
+            var empt = document.getElementById("named").value;
+            if (empt != "") {
+                form.action = '/shrouten/' + document.getElementById("named").value;}
+                else {
+                    form.action = '/shrouten';
+                }
+            }
+    </script>
+    <h2>URL Shroutener</h2>
+    <h3>{{ .FORM_RESULT}}</h3>
+    <form onSubmit="get_action(this)" method="POST">
+        <input type="text" name="url" style="width: 35em;" /><input type="text" id="named" value="" placeholder="Optional Custom Key">
+        <input type="submit" value="Make it Shroutner!" />
+    </form>
+    {{ if atLeastOne .TOTAL_SHROUTENAGE }}
+    <p>{{ .TOTAL_SHROUTENAGE }} URLs shroutened!</p>
+    {{ end }}
+    <!--<form action="/pruge" method="POST">
+        <input type="submit" value="Pruge Database" /></form> -->
+</body>
+</html>
