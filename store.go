@@ -6,49 +6,66 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-var Panic = func(v interface{}) {
-	panic(v)
+type Store interface {
+	All() ShortenedUrls
+	Set(key string, value string) error
+	Get(key string) string
+	Len() int
+	Clear() error
+	Close()
 }
 
-var _ Store = &DB{}
+//implements store
+type DB struct {
+	db *bolt.DB
+}
 
-// one bucket to shroutnedn them all
+// Was trick to ensure improper implementation of Store interface would come up at Compile time.
+// This is unneeded as api function now properly takes a Store as parameter.
+//var _ Store = &DB{}
+
+// The bucket (in boltdb sense) used to keep shroutened urls.
 var brucklet = []byte("urls")
 
-func openDBFile(file string) *bolt.DB {
-	// boltdB creates if not existing
+func openDBFile(file string) (*bolt.DB, error) {
+
+	// boltdB creates a db if it doesn't exists
+	// here we considered that combined failure to either open or create proper database makes persistence failure and that such failure is fatal.
+	// But this was not only argable but also a failure to provide agnosticism. So such panic is deported to NewDB func.
 	db, err := bolt.Open(file, 0600, nil)
 	if err != nil {
-		Panic(err)
+		return nil, err
 	}
 
+	// We only use one bucket, but the "..." denotes you can add more as buckets lenght is then specified
+	// as equals to the number of elements in buckets array literal.
 	buckets := [...][]byte{
 		brucklet,
 	}
 
+	// bucket inavailability is not fatal and can be recovered
 	db.Update(func(tx *bolt.Tx) (err error) {
 		for _, bucket := range buckets {
 			_, err = tx.CreateBucketIfNotExists(bucket)
 			if err != nil {
-				Panic(err)
+				return err
 			}
 		}
 		return
 	})
-	return db
+	return db, nil
 }
 
 // NewDB return instances with already opened db
-// TODO : implement a Store interface ? ~sortof
 func NewDB(file string) *DB {
-	return &DB{
-		db: openDBFile(file),
+	db, err := openDBFile(file)
+	if err != nil {
+		panic(err)
 	}
+	return &DB{db}
 }
 
-//put in.
-// for now we don't update on same value, but why ? todo : at least stop telling success when not updating because value exists
-//if time, fuzz with some factory/store interface to check to what extent we've lost knownledge
+//put in
 func (d *DB) Set(key string, value string) error {
 	return d.db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(brucklet)
@@ -57,7 +74,7 @@ func (d *DB) Set(key string, value string) error {
 		}
 		k := []byte(key)
 		valueB := []byte(value)
-		c := b.Cursor() // valid for transaction duration scope....
+		c := b.Cursor()
 		exists := false
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			if bytes.Equal(valueB, v) {
@@ -79,10 +96,10 @@ func (d *DB) Clear() error {
 	})
 }
 
-// Key returns an empty string if not found, not nil.
+// Warning: boltdb will return an empty string if key is not found, not nil.
 func (d *DB) Get(key string) (value string) {
 	keyB := []byte(key)
-	d.db.Update(func(tx *bolt.Tx) error {
+	d.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(brucklet)
 		if b == nil {
 			return nil
@@ -106,10 +123,8 @@ func (d *DB) All() (urls ShortenedUrls) {
 		if b == nil {
 			return nil
 		}
-
 		b.ForEach(func(k, v []byte) error {
-			u := ShortenedUrl{string(k), string(v)}
-			urls = append(urls, u)
+			urls.addInPlace(string(k), string(v))
 			return nil
 		})
 		return nil
@@ -119,7 +134,6 @@ func (d *DB) All() (urls ShortenedUrls) {
 
 func (d *DB) Len() (num int) {
 	d.db.View(func(tx *bolt.Tx) error {
-		//dirty fixed 0 total key in template conditional...
 		b := tx.Bucket(brucklet)
 		if b == nil {
 			return nil
@@ -136,6 +150,6 @@ func (d *DB) Len() (num int) {
 // Close-shutdowns db handle.
 func (d *DB) Close() {
 	if err := d.db.Close(); err != nil {
-		Panic(err)
+		panic(err)
 	}
 }

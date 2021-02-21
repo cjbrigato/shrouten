@@ -20,7 +20,7 @@
         <input type="text" name="url" style="width: 35em;" /><input type="text" id="named" value="" placeholder="Optional Custom Key">
         <input type="submit" value="Make it Shroutner!" />
     </form>
-    {{ if atLeastOne .TOTAL_SHROUTENAGE }}
+    {{ if .TOTAL_SHROUTENAGE }}
     <p>{{ .TOTAL_SHROUTENAGE }} URLs shroutened!</p>
     {{ end }}
     <!--<form action="/pruge" method="POST">
