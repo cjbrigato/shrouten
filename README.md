@@ -39,6 +39,9 @@ To avoid any doubt regarding their willfulness, here is the list these typos. If
 
 *pruge*: the act of relieving a shroutened collection from a database. Usually meaning "clearing", or *purge*
 
+*brucklet*: a specific elements buckets (a brucklet collection). Interestingly, the collection won't take the typo.
+
+
 ### FAQ
 
 **Q1.** *Does "put in" comment is anyhow connected to an eastern-europe head of state?*
