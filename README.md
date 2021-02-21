@@ -27,6 +27,8 @@ To avoid any doubt regarding their willfulness, here is the list these typos. If
 
 *shroutenable*: any thing that is used as candidate for shroutening. Upon invalidation, it could lose it's state of shroutenable. Please note that *General* *Shroutenability*  and associated theory is a wider and more complex topic which is not covered here.
 
+*shroutner*: comparative adjective. Someting that has been shroutened is incidentally shroutner. Stands for *shorter*.
+
 *intrenol*: denotes something that is happening at low level, that is *internal*
 
 *errur*: a common thing that is reputed to be "human" and that humanity tries it's best to avoid. Stands for *error*. Denoted as *"Intrenol errur"* when happening at lower levels.
